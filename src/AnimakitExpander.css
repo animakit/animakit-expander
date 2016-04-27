@@ -1,0 +1,14 @@
+.root {
+  all: initial;
+}
+.wrapper {
+
+}
+.content {
+
+}
+.content::before {
+  content: '';
+  display: table;
+  height: 0;
+}
