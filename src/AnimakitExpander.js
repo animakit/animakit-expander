@@ -1,11 +1,16 @@
 import React                        from 'react';
 import { findDOMNode }              from 'react-dom';
 
-import styles                       from './AnimakitExpander.css';
+import styles                       from './styles.js';
+import useSheet                     from 'react-jss';
+import jss                          from 'jss';
+import nested                       from 'jss-nested';
 
 import { isEqual, genUniqueString } from 'animakit-core';
 
-export class AnimakitExpander extends React.Component {
+jss.use(nested());
+
+class AnimakitExpander extends React.Component {
   static propTypes = {
     children:   React.PropTypes.any,
     expanded:   React.PropTypes.bool,
@@ -186,15 +191,17 @@ export class AnimakitExpander extends React.Component {
   }
 
   render() {
+    const { classes } = this.props.sheet;
+
     return (
-      <div className = { styles.root }>
+      <div className = { classes.root }>
         <div
-          className = { styles.wrapper }
+          className = { classes.wrapper }
           style = { this.getWrapperStyles() }
         >
           <div
-            ref   = "content"
-            className = { styles.content }
+            ref = "content"
+            className = { classes.content }
             style = { this.getContentStyles() }
           >
             { this.props.children }
@@ -204,3 +211,6 @@ export class AnimakitExpander extends React.Component {
     );
   }
 }
+
+export default useSheet(AnimakitExpander, styles);
+export { AnimakitExpander as PureAnimakitExpander };
