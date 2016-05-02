@@ -1,11 +1,9 @@
 import React                        from 'react';
 import { findDOMNode }              from 'react-dom';
-
 import styles                       from './styles.js';
 import useSheet                     from 'react-jss';
 import jss                          from 'jss';
 import nested                       from 'jss-nested';
-
 import { isEqual, genUniqueString } from 'animakit-core';
 
 jss.use(nested());
@@ -38,11 +36,6 @@ class AnimakitExpander extends React.Component {
   contentNode      = null;
   contentSize      = 0;
   animationResetTO = null;
-
-  componentWillMount() {
-    this.styleSheetNode = document.createElement('style');
-    document.head.appendChild(this.styleSheetNode);
-  }
 
   componentDidMount() {
     this.contentNode = findDOMNode(this.refs.content);
@@ -122,24 +115,32 @@ class AnimakitExpander extends React.Component {
 
   resetAnimationNames() {
     const uniqueString = genUniqueString();
-    const expand = `AnimakitExpanderExpand-${ uniqueString }`;
-    const collapse = `AnimakitExpanderCollapse-${ uniqueString }`;
+    const expand = `expand-${ uniqueString }`;
+    const collapse = `collapse-${ uniqueString }`;
 
     this.animationNames = { expand, collapse };
   }
 
-  getAnimationStyle(expand) {
-    const name = this.animationNames[expand ? 'expand' : 'collapse'];
+  getAnimationStyle(type) {
+    const name = this.animationNames[type];
     const dimension = this.props.horizontal ? 'width' : 'height';
     const size = this.contentSize;
-    const from = expand ? 0 : size;
-    const to = expand ? size : 0;
+    const from = type === 'expand' ? 0 : size;
+    const to = type === 'expand' ? size : 0;
 
     return `@keyframes ${ name } { from { ${ dimension }: ${ from }px; } to { ${ dimension }: ${ to }px; } }`;
   }
 
   resetAnimationStyles() {
-    this.styleSheetNode.innerHTML = `${ this.getAnimationStyle(true) } ${ this.getAnimationStyle(false) }`;
+    if (!this.styleSheetNode) {
+      const sheet = document.createElement('style');
+      sheet.setAttribute('type', 'text/css');
+      document.head.appendChild(sheet);
+
+      this.styleSheetNode = sheet;
+    }
+
+    this.styleSheetNode.innerHTML = `${ this.getAnimationStyle('expand') } ${ this.getAnimationStyle('collapse') }`;
   }
 
   getWrapperStyles() {

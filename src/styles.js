@@ -1,6 +1,7 @@
 export default {
   root: {
-    all: 'initial'
+    all: 'initial',
+    font: 'inherit'
   },
   wrapper: {
 
