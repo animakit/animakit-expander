@@ -1,7 +1,7 @@
 import React                                        from 'react';
 import { expect }                                   from 'chai';
 import { shallow, render }                          from 'enzyme';
-import { PureAnimakitExpander as AnimakitExpander } from '../src/AnimakitExpander';
+import { PureAnimakitExpander as AnimakitExpander } from '../lib/AnimakitExpander.js';
 
 const classes = {
   root:    'root',
