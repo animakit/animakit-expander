@@ -47,9 +47,11 @@ class AnimakitExpander extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    const stateChanged = !isEqual(this.state, nextState);
+    const stateChanged = !isEqual(nextState, this.state);
 
-    return stateChanged;
+    const propsChanged = !isEqual(nextProps.children, this.props.children);
+
+    return stateChanged || propsChanged;
   }
 
   componentWillUnmount() {

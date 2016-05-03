@@ -2,6 +2,42 @@
 React component for expanding and collapsing of content blocks.
 Supports both vertical and horizontal mode.
 
+```javascript
+class Song extends React.Component {
+  state = {
+    expanded: false
+  };
+
+  listeners = {
+    onClick: this.onClick.bind(this)
+  };
+
+  onClick() {
+    const expanded = !this.state.expanded;
+    this.setState({ expanded });
+  }
+
+  render() {
+    return (
+      <div className = { styles.song }>
+        <div
+          className = { this.state.expanded ? styles.titleExpanded : styles.title }
+          onClick = { this.listeners.onClick }
+        >
+          { this.props.title }
+        </div>
+
+        <AnimakitExpander expanded = { this.state.expanded }>
+          <div className = { styles.text }>
+            { this.props.text }
+          </div>
+        </AnimakitExpander>
+      </div>
+    );
+  }
+}
+```
+
 ## [Demo](http://askd.github.io/animakit/#/expander)
 
 ## Installation
