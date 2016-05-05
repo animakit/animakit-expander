@@ -1,27 +1,22 @@
-import React                                        from 'react';
-import { expect }                                   from 'chai';
-import { shallow, render }                          from 'enzyme';
-import { PureAnimakitExpander as AnimakitExpander } from '../lib/AnimakitExpander.js';
-
-const classes = {
-  root:    'root',
-  wrapper: 'wrapper',
-  content: 'content'
-};
+import React            from 'react';
+import { expect }       from 'chai';
+import { shallow }      from 'enzyme';
+import AnimakitExpander from '../lib/AnimakitExpander.js';
 
 describe('AnimakitExpander', () => {
   it('shallow', () => {
-    const wrapper = shallow(<AnimakitExpander sheet={{ classes }} />);
-    expect(wrapper.is('div')).to.equal(true);
+    const root = shallow(<AnimakitExpander />);
+    expect(root.is('div')).to.equal(true);
   });
 
-  it('render', () => {
-    const wrapper = render(<AnimakitExpander sheet={{ classes }} />);
-    expect(wrapper.find('.wrapper')).to.have.length(1);
+  it('has wrapper', () => {
+    const root = shallow(<AnimakitExpander />);
+    expect(root.children()).to.have.length(1);
   });
 
-  it('children', () => {
-    const wrapper = render(<AnimakitExpander sheet={{ classes }}><div>1</div></AnimakitExpander>);
-    expect(wrapper.find('.content')).to.have.length(1);
+  it('has children', () => {
+    const root = shallow(<AnimakitExpander><div>1</div></AnimakitExpander>);
+    const wrapper = root.childAt(0);
+    expect(wrapper.children()).to.have.length(1);
   });
 });
