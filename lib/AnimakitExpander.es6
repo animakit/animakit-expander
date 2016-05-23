@@ -78,17 +78,6 @@ export default class AnimakitExpander extends React.Component {
     return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
   }
 
-  resetDimensionsState(stateChunk) {
-    const { width, height } = stateChunk;
-
-    if (
-      width === this.state.width &&
-      height === this.state.height
-    ) return {};
-
-    return stateChunk;
-  }
-
   repaint(nextProps, first = false) {
     const expanded = nextProps.expanded;
 
