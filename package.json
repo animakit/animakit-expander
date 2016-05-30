@@ -1,7 +1,7 @@
 {
   "name": "animakit-expander",
   "version": "1.0.7",
-  "description": "AnimakitExpander - React component for expanding and collapsing content blocks",
+  "description": "AnimakitExpander - React component for the expanding and collapsing of the blocks",
   "main": "index.js",
   "files": [
     "*.md",

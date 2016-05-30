@@ -1,5 +1,5 @@
 # AnimakitExpander
-React component for expanding and collapsing of content blocks.
+React component for the expanding and collapsing of the blocks.
 Supports both vertical and horizontal mode.
 
 ## Usage
