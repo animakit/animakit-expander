@@ -1,6 +1,6 @@
 {
   "name": "animakit-expander",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "AnimakitExpander - React component for the expanding and collapsing of the blocks",
   "main": "index.js",
   "files": [
@@ -29,7 +29,7 @@
     "url": "https://github.com/animakit/animakit-expander"
   },
   "devDependencies": {
-    "babel-cli": "^6.9.0",
+    "babel-cli": "^6.10.1",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.3.13",
@@ -43,7 +43,7 @@
     "rimraf": "^2.5.2"
   },
   "dependencies": {
-    "animakit-core": "^1.0.2",
+    "animakit-core": "^1.0.4",
     "react": "^15.1.0",
     "react-dom": "^15.1.0"
   }

@@ -1,6 +1,6 @@
-import React                        from 'react';
-import { findDOMNode }              from 'react-dom';
-import { isEqual, genUniqueString } from 'animakit-core';
+import React           from 'react';
+import { findDOMNode } from 'react-dom';
+import { isEqual }     from 'animakit-core';
 
 export default class AnimakitExpander extends React.Component {
   static propTypes = {
@@ -21,14 +21,13 @@ export default class AnimakitExpander extends React.Component {
   };
 
   state = {
+    size:      -1,
     animation: false,
     expanded:  false
   };
 
-  styleSheetNode   = null;
-  animationNames   = null;
   contentNode      = null;
-  contentSize      = 0;
+  resizeCheckerRAF = null;
   animationResetTO = null;
 
   componentDidMount() {
@@ -40,6 +39,10 @@ export default class AnimakitExpander extends React.Component {
     this.repaint(nextProps);
   }
 
+  componentWillUpdate() {
+    this.cancelResizeChecker();
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const stateChanged = !isEqual(nextState, this.state);
 
@@ -48,8 +51,23 @@ export default class AnimakitExpander extends React.Component {
     return stateChanged || propsChanged;
   }
 
+  componentDidUpdate() {
+    this.startResizeChecker();
+  }
+
   componentWillUnmount() {
+    this.cancelResizeChecker();
     this.cancelAnimationReset();
+  }
+
+  startResizeChecker() {
+    if (typeof requestAnimationFrame === 'undefined') return;
+    this.resizeCheckerRAF = requestAnimationFrame(this.checkResize.bind(this));
+  }
+
+  cancelResizeChecker() {
+    if (typeof requestAnimationFrame === 'undefined') return;
+    if (this.resizeCheckerRAF) cancelAnimationFrame(this.resizeCheckerRAF);
   }
 
   startAnimationReset() {
@@ -65,29 +83,30 @@ export default class AnimakitExpander extends React.Component {
   }
 
   checkResize() {
-    const size = this.calcSize();
-    if (size !== this.contentSize) {
-      this.contentSize = size;
-      this.resetAnimationNames();
-      this.resetAnimationStyles();
-    }
+    this.cancelResizeChecker();
+
+    this.repaint(this.props);
+
+    this.startResizeChecker();
   }
 
   calcSize() {
+    if (!this.state.expanded) return 0;
+
     const node = this.contentNode;
     return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
   }
 
   repaint(nextProps, first = false) {
     const expanded = nextProps.expanded;
+    const size = this.calcSize();
 
-    if (this.state.expanded === expanded) return;
+    if (this.state.expanded === expanded && this.state.size === size) return;
 
     const animation = !first;
-    const state = { expanded, animation };
+    const state = { expanded, size, animation };
 
     if (animation) {
-      this.checkResize();
       this.cancelAnimationReset();
     }
 
@@ -98,63 +117,24 @@ export default class AnimakitExpander extends React.Component {
     }
   }
 
-  resetAnimationNames() {
-    const uniqueString = genUniqueString();
-    const expand = `expand-${ uniqueString }`;
-    const collapse = `collapse-${ uniqueString }`;
-
-    this.animationNames = { expand, collapse };
-  }
-
-  getAnimationStyle(type) {
-    const name = this.animationNames[type];
-    const dimension = this.props.horizontal ? 'width' : 'height';
-    const size = this.contentSize;
-    const from = type === 'expand' ? 0 : size;
-    const to = type === 'expand' ? size : 0;
-
-    return `@keyframes ${ name } { from { ${ dimension }: ${ from }px; } to { ${ dimension }: ${ to }px; } }`;
-  }
-
-  resetAnimationStyles() {
-    if (!this.styleSheetNode) {
-      const sheet = document.createElement('style');
-      sheet.setAttribute('type', 'text/css');
-      document.head.appendChild(sheet);
-
-      this.styleSheetNode = sheet;
-    }
-
-    this.styleSheetNode.innerHTML = `${ this.getAnimationStyle('expand') } ${ this.getAnimationStyle('collapse') }`;
-  }
-
   getWrapperStyles() {
-    const expanded = this.state.expanded;
     const position = 'relative';
     const overflow = 'hidden';
+    const horizontal = this.props.horizontal;
+
+    const size = this.state.expanded ? `${ this.state.size }px` : 0;
+    const styles =  horizontal ? { width: size } : { height: size };
 
     if (!this.state.animation) {
-      const horizontal = this.props.horizontal;
-
-      if (!expanded) {
-        const width = 0;
-        const height = 0;
-
-        return horizontal ? { overflow, width } : { overflow, height };
-      }
-
-      const width = 'auto';
-      const height = 'auto';
-
-      return horizontal ? { width } : { height };
+      return { ...styles };
     }
 
     const { duration, easing } = this.props;
-    const name = this.animationNames[expanded ? 'expand' : 'collapse'];
 
-    const animation = `${ name } ${ duration }ms ${ easing } forwards`;
+    const dimension = horizontal ? 'width' : 'height';
+    const transition = `${ dimension } ${ duration }ms ${ easing }`;
 
-    return { position, overflow, animation };
+    return { position, overflow, transition, ...styles };
   }
 
   getContentStyles() {
@@ -185,7 +165,7 @@ export default class AnimakitExpander extends React.Component {
             style = { this.getContentStyles() }
           >
             <span style = {{ display: 'table', height: 0 }}></span>
-            { this.props.children }
+            { (this.state.expanded || this.state.animation) && this.props.children }
           </div>
         </div>
       </div>
