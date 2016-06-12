@@ -4,24 +4,27 @@ import { isEqual }     from 'animakit-core';
 
 export default class AnimakitExpander extends React.Component {
   static propTypes = {
-    children:   React.PropTypes.any,
-    expanded:   React.PropTypes.bool,
-    horizontal: React.PropTypes.bool,
-    align:      React.PropTypes.string,
-    duration:   React.PropTypes.number,
-    easing:     React.PropTypes.string
+    children:      React.PropTypes.any,
+    expanded:      React.PropTypes.bool,
+    horizontal:    React.PropTypes.bool,
+    align:         React.PropTypes.string,
+    duration:      React.PropTypes.number,
+    durationPerPx: React.PropTypes.number,
+    easing:        React.PropTypes.string
   };
 
   static defaultProps = {
-    expanded:   true,
-    horizontal: false,
-    align:      'left',
-    duration:   500,
-    easing:     'ease-out'
+    expanded:      true,
+    horizontal:    false,
+    align:         'left',
+    duration:      500,
+    durationPerPx: 0,
+    easing:        'ease-out'
   };
 
   state = {
     size:      -1,
+    duration:  0,
     animation: false,
     expanded:  false
   };
@@ -75,7 +78,7 @@ export default class AnimakitExpander extends React.Component {
       this.setState({
         animation: false
       });
-    }, this.props.duration);
+    }, this.state.duration);
   }
 
   cancelAnimationReset() {
@@ -88,6 +91,13 @@ export default class AnimakitExpander extends React.Component {
     this.repaint(this.props);
 
     this.startResizeChecker();
+  }
+
+  calcDuration(size) {
+    if (!this.props.durationPerPx) return this.props.duration;
+
+    const sizeDiff = Math.abs(this.state.size - size);
+    return this.props.durationPerPx * sizeDiff;
   }
 
   calcSize() {
@@ -103,8 +113,9 @@ export default class AnimakitExpander extends React.Component {
 
     if (this.state.expanded === expanded && this.state.size === size) return;
 
+    const duration = this.calcDuration(expanded ? size : 0);
     const animation = !first;
-    const state = { expanded, size, animation };
+    const state = { expanded, size, duration, animation };
 
     if (animation) {
       this.cancelAnimationReset();
@@ -129,7 +140,8 @@ export default class AnimakitExpander extends React.Component {
       return { ...styles };
     }
 
-    const { duration, easing } = this.props;
+    const easing = this.props.easing;
+    const duration = this.state.duration;
 
     const dimension = horizontal ? 'width' : 'height';
     const transition = `${ dimension } ${ duration }ms ${ easing }`;
