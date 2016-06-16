@@ -33,6 +33,10 @@ export default class AnimakitExpander extends React.Component {
   resizeCheckerRAF = null;
   animationResetTO = null;
 
+  listeners = {
+    checkResize: this.checkResize.bind(this)
+  };
+
   componentDidMount() {
     this.contentNode = findDOMNode(this.refs.content);
     this.repaint(this.props, true);
@@ -65,7 +69,7 @@ export default class AnimakitExpander extends React.Component {
 
   startResizeChecker() {
     if (typeof requestAnimationFrame === 'undefined') return;
-    this.resizeCheckerRAF = requestAnimationFrame(this.checkResize.bind(this));
+    this.resizeCheckerRAF = requestAnimationFrame(this.listeners.checkResize);
   }
 
   cancelResizeChecker() {
