@@ -30,16 +30,22 @@ export default class AnimakitExpander extends React.Component {
   };
 
   contentNode      = null;
-  resizeCheckerRAF = null;
   animationResetTO = null;
+  resizeCheckerRAF = null;
+  winLoaded        = false;
+  contentMounted   = false;
 
   listeners = {
-    checkResize: this.checkResize.bind(this)
+    checkResize: this.checkResize.bind(this),
+    winOnLoad:   this.winOnLoad.bind(this)
   };
 
   componentDidMount() {
     this.contentNode = findDOMNode(this.refs.content);
-    this.repaint(this.props, true);
+
+    this.initLoad();
+
+    this.repaint(this.props);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -65,6 +71,28 @@ export default class AnimakitExpander extends React.Component {
   componentWillUnmount() {
     this.cancelResizeChecker();
     this.cancelAnimationReset();
+    this.cancelLoad();
+  }
+
+  initLoad() {
+    if (!window || document.readyState === 'complete') {
+      this.winLoaded = true;
+      return;
+    }
+
+    window.addEventListener('load', this.listeners.winOnLoad, false);
+  }
+
+  cancelLoad() {
+    if (!window || this.winLoaded) {
+      return;
+    }
+
+    window.removeEventListener('load', this.listeners.winOnLoad, false);
+  }
+
+  winOnLoad() {
+    this.winLoaded = true;
   }
 
   startResizeChecker() {
@@ -111,15 +139,21 @@ export default class AnimakitExpander extends React.Component {
     return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
   }
 
-  repaint(nextProps, first = false) {
+  repaint(nextProps) {
     const expanded = nextProps.expanded;
     const size = this.calcSize();
 
     if (this.state.expanded === expanded && this.state.size === size) return;
 
     const duration = this.calcDuration(expanded ? size : 0);
-    const animation = !first;
+    const animation = this.winLoaded && this.contentMounted;
     const state = { expanded, size, duration, animation };
+
+    if (this.state.size === -1) {
+      setTimeout(() => {
+        this.contentMounted = true;
+      }, 1);
+    }
 
     if (animation) {
       this.cancelAnimationReset();
