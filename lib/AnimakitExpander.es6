@@ -139,6 +139,14 @@ export default class AnimakitExpander extends React.Component {
     return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
   }
 
+  getChildrenCount(children) {
+    const length = Array.isArray(children) ? children.length : 1;
+
+    if (length > 1) return length;
+
+    return children ? 1 : 0;
+  }
+
   repaint(nextProps) {
     const expanded = nextProps.expanded;
     const size = this.calcSize();
@@ -166,7 +174,9 @@ export default class AnimakitExpander extends React.Component {
     }
   }
 
-  getWrapperStyles() {
+  getRootStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
     const position = 'relative';
     const overflow = 'hidden';
     const horizontal = this.props.horizontal;
@@ -188,6 +198,8 @@ export default class AnimakitExpander extends React.Component {
   }
 
   getContentStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
     if (this.props.horizontal) {
       const float = this.props.align === 'right' ? 'right' : 'left';
 
@@ -207,16 +219,15 @@ export default class AnimakitExpander extends React.Component {
   }
 
   render() {
+    const showChildren = this.state.expanded || this.state.animation;
     return (
-      <div>
-        <div style = { this.getWrapperStyles() }>
-          <div
-            ref = "content"
-            style = { this.getContentStyles() }
-          >
-            <span style = {{ display: 'table', height: 0 }}></span>
-            { (this.state.expanded || this.state.animation) && this.props.children }
-          </div>
+      <div style = { showChildren ? this.getRootStyles() : {} }>
+        <div
+          ref = "content"
+          style = { showChildren ? this.getContentStyles() : {} }
+        >
+          { (showChildren && !!this.props.children) && <span style = {{ display: 'table', height: 0 }}></span> }
+          { showChildren && this.props.children }
         </div>
       </div>
     );

@@ -9,14 +9,8 @@ describe('AnimakitExpander', () => {
     expect(root.is('div')).to.equal(true);
   });
 
-  it('has wrapper', () => {
-    const root = shallow(<AnimakitExpander />);
-    expect(root.children()).to.have.length(1);
-  });
-
   it('has children', () => {
     const root = shallow(<AnimakitExpander><div>1</div></AnimakitExpander>);
-    const wrapper = root.childAt(0);
-    expect(wrapper.children()).to.have.length(1);
+    expect(root.children()).to.have.length(1);
   });
 });
