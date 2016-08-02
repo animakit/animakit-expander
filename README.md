@@ -15,7 +15,7 @@ Supports both vertical and horizontal mode.
 </AnimakitExpander>
 ```
 
-## [Demo](http://askd.github.io/animakit/#/expander)
+## [Demo](https://animakit.github.io/#/expander)
 
 ## Installation
 
@@ -38,4 +38,4 @@ npm install animakit-expander
 ## Origin
 
 Part of Animakit.
-See http://askd.github.io/animakit for more details.
+See https://animakit.github.io for more details.
