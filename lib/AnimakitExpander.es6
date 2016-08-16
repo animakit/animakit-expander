@@ -1,6 +1,5 @@
-import React           from 'react';
-import { findDOMNode } from 'react-dom';
-import { isEqual }     from 'animakit-core';
+import React       from 'react';
+import { isEqual } from 'animakit-core';
 
 export default class AnimakitExpander extends React.Component {
   static propTypes = {
@@ -10,7 +9,7 @@ export default class AnimakitExpander extends React.Component {
     align:         React.PropTypes.string,
     duration:      React.PropTypes.number,
     durationPerPx: React.PropTypes.number,
-    easing:        React.PropTypes.string
+    easing:        React.PropTypes.string,
   };
 
   static defaultProps = {
@@ -19,30 +18,21 @@ export default class AnimakitExpander extends React.Component {
     align:         'left',
     duration:      500,
     durationPerPx: 0,
-    easing:        'ease-out'
+    easing:        'ease-out',
   };
 
   state = {
     size:      -1,
     duration:  0,
     animation: false,
-    expanded:  false
+    expanded:  false,
   };
 
-  contentNode      = null;
-  animationResetTO = null;
-  resizeCheckerRAF = null;
-  winLoaded        = false;
-  contentMounted   = false;
-
-  listeners = {
-    checkResize: this.checkResize.bind(this),
-    winOnLoad:   this.winOnLoad.bind(this)
-  };
+  componentWillMount() {
+    this.init();
+  }
 
   componentDidMount() {
-    this.contentNode = findDOMNode(this.refs.content);
-
     this.initLoad();
 
     this.repaint(this.props);
@@ -50,10 +40,6 @@ export default class AnimakitExpander extends React.Component {
 
   componentWillReceiveProps(nextProps) {
     this.repaint(nextProps);
-  }
-
-  componentWillUpdate() {
-    this.cancelResizeChecker();
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -64,6 +50,10 @@ export default class AnimakitExpander extends React.Component {
     return stateChanged || propsChanged;
   }
 
+  componentWillUpdate() {
+    this.cancelResizeChecker();
+  }
+
   componentDidUpdate() {
     this.startResizeChecker();
   }
@@ -72,6 +62,71 @@ export default class AnimakitExpander extends React.Component {
     this.cancelResizeChecker();
     this.cancelAnimationReset();
     this.cancelLoad();
+  }
+
+  getRootStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
+    const position = 'relative';
+    const overflow = 'hidden';
+    const horizontal = this.props.horizontal;
+
+    const size = this.state.expanded ? `${this.state.size}px` : 0;
+    const styles =  horizontal ? { width: size } : { height: size };
+
+    if (!this.state.animation) {
+      return { ...styles };
+    }
+
+    const easing = this.props.easing;
+    const duration = this.state.duration;
+
+    const dimension = horizontal ? 'width' : 'height';
+    const transition = `${dimension} ${duration}ms ${easing}`;
+
+    return { position, overflow, transition, ...styles };
+  }
+
+  getContentStyles() {
+    if (!this.state.animation && !this.props.children) return {};
+
+    if (this.props.horizontal) {
+      const float = this.props.align === 'right' ? 'right' : 'left';
+
+      return { float };
+    }
+
+    if (this.props.align === 'bottom' && this.state.animation) {
+      return {
+        position: 'absolute',
+        bottom:   0,
+        left:     0,
+        width:    '100%',
+      };
+    }
+
+    return {};
+  }
+
+  getChildrenCount(children) {
+    const length = Array.isArray(children) ? children.length : 1;
+
+    if (length > 1) return length;
+
+    return children ? 1 : 0;
+  }
+
+  init() {
+    this.contentNode      = null;
+    this.animationResetTO = null;
+    this.resizeCheckerRAF = null;
+    this.winLoaded        = false;
+    this.contentMounted   = false;
+
+    this.listeners = {
+      checkResize: this.checkResize.bind(this),
+      winOnLoad:   this.winOnLoad.bind(this),
+    };
   }
 
   initLoad() {
@@ -108,7 +163,7 @@ export default class AnimakitExpander extends React.Component {
   startAnimationReset() {
     this.animationResetTO = setTimeout(() => {
       this.setState({
-        animation: false
+        animation: false,
       });
     }, this.state.duration);
   }
@@ -139,14 +194,6 @@ export default class AnimakitExpander extends React.Component {
     return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
   }
 
-  getChildrenCount(children) {
-    const length = Array.isArray(children) ? children.length : 1;
-
-    if (length > 1) return length;
-
-    return children ? 1 : 0;
-  }
-
   repaint(nextProps) {
     const expanded = nextProps.expanded;
     const size = this.calcSize();
@@ -174,59 +221,15 @@ export default class AnimakitExpander extends React.Component {
     }
   }
 
-  getRootStyles() {
-    if (!this.state.animation && !this.props.children) return {};
-
-    const position = 'relative';
-    const overflow = 'hidden';
-    const horizontal = this.props.horizontal;
-
-    const size = this.state.expanded ? `${ this.state.size }px` : 0;
-    const styles =  horizontal ? { width: size } : { height: size };
-
-    if (!this.state.animation) {
-      return { ...styles };
-    }
-
-    const easing = this.props.easing;
-    const duration = this.state.duration;
-
-    const dimension = horizontal ? 'width' : 'height';
-    const transition = `${ dimension } ${ duration }ms ${ easing }`;
-
-    return { position, overflow, transition, ...styles };
-  }
-
-  getContentStyles() {
-    if (!this.state.animation && !this.props.children) return {};
-
-    if (this.props.horizontal) {
-      const float = this.props.align === 'right' ? 'right' : 'left';
-
-      return { float };
-    }
-
-    if (this.props.align === 'bottom' && this.state.animation) {
-      return {
-        position: 'absolute',
-        bottom:   0,
-        left:     0,
-        width:    '100%'
-      };
-    }
-
-    return {};
-  }
-
   render() {
     const showChildren = this.state.expanded || this.state.animation;
     return (
       <div style = { showChildren ? this.getRootStyles() : {} }>
         <div
-          ref = "content"
+          ref = {(c) => { this.contentNode = c; }}
           style = { showChildren ? this.getContentStyles() : {} }
         >
-          { (showChildren && !!this.props.children) && <span style = {{ display: 'table', height: 0 }}></span> }
+          { (showChildren && !!this.props.children) && <span style = {{ display: 'table', height: 0 }} /> }
           { showChildren && this.props.children }
         </div>
       </div>
