@@ -90,13 +90,15 @@ export default class AnimakitExpander extends React.Component {
   getContentStyles() {
     if (!this.state.animation && !this.props.children) return {};
 
-    if (this.props.horizontal) {
-      const float = this.props.align === 'right' ? 'right' : 'left';
+    const { horizontal, align } = this.props;
+
+    if (horizontal) {
+      const float = align === 'right' ? 'right' : 'left';
 
       return { float };
     }
 
-    if (this.props.align === 'bottom' && this.state.animation) {
+    if (align === 'bottom' && this.state.animation) {
       return {
         position: 'absolute',
         bottom:   0,
@@ -106,6 +108,12 @@ export default class AnimakitExpander extends React.Component {
     }
 
     return {};
+  }
+
+  getClearance() {
+    return (
+      <span style = {{ display: 'table', height: 0 }} />
+    );
   }
 
   getChildrenCount(children) {
@@ -223,14 +231,17 @@ export default class AnimakitExpander extends React.Component {
 
   render() {
     const showChildren = this.state.expanded || this.state.animation;
+    const hasChildren = !!this.props.children;
+
     return (
       <div style = { showChildren ? this.getRootStyles() : {} }>
         <div
           ref = {(c) => { this.contentNode = c; }}
           style = { showChildren ? this.getContentStyles() : {} }
         >
-          { (showChildren && !!this.props.children) && <span style = {{ display: 'table', height: 0 }} /> }
+          { showChildren && hasChildren && this.getClearance() }
           { showChildren && this.props.children }
+          { showChildren && hasChildren && this.getClearance() }
         </div>
       </div>
     );
