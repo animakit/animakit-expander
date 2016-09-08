@@ -1,7 +1,7 @@
-import React       from 'react';
-import { isEqual } from 'animakit-core';
+import React        from 'react';
+import AnimakitBase from 'animakit-core';
 
-export default class AnimakitExpander extends React.Component {
+export default class AnimakitExpander extends AnimakitBase {
   static propTypes = {
     children:      React.PropTypes.any,
     expanded:      React.PropTypes.bool,
@@ -28,40 +28,9 @@ export default class AnimakitExpander extends React.Component {
     expanded:  false,
   };
 
-  componentWillMount() {
-    this.init();
-  }
-
-  componentDidMount() {
-    this.initLoad();
-
-    this.repaint(this.props);
-  }
-
-  componentWillReceiveProps(nextProps) {
-    this.repaint(nextProps);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    const stateChanged = !isEqual(nextState, this.state);
-
-    const propsChanged = !isEqual(nextProps.children, this.props.children);
-
-    return stateChanged || propsChanged;
-  }
-
-  componentWillUpdate() {
-    this.cancelResizeChecker();
-  }
-
-  componentDidUpdate() {
-    this.startResizeChecker();
-  }
-
-  componentWillUnmount() {
-    this.cancelResizeChecker();
-    this.cancelAnimationReset();
-    this.cancelLoad();
+  init() {
+    this.contentNode      = null;
+    this.contentMounted   = false;
   }
 
   getRootStyles() {
@@ -124,70 +93,6 @@ export default class AnimakitExpander extends React.Component {
     return children ? 1 : 0;
   }
 
-  init() {
-    this.contentNode      = null;
-    this.animationResetTO = null;
-    this.resizeCheckerRAF = null;
-    this.winLoaded        = false;
-    this.contentMounted   = false;
-
-    this.listeners = {
-      checkResize: this.checkResize.bind(this),
-      winOnLoad:   this.winOnLoad.bind(this),
-    };
-  }
-
-  initLoad() {
-    if (!window || document.readyState === 'complete') {
-      this.winLoaded = true;
-      return;
-    }
-
-    window.addEventListener('load', this.listeners.winOnLoad, false);
-  }
-
-  cancelLoad() {
-    if (!window || this.winLoaded) {
-      return;
-    }
-
-    window.removeEventListener('load', this.listeners.winOnLoad, false);
-  }
-
-  winOnLoad() {
-    this.winLoaded = true;
-  }
-
-  startResizeChecker() {
-    if (typeof requestAnimationFrame === 'undefined') return;
-    this.resizeCheckerRAF = requestAnimationFrame(this.listeners.checkResize);
-  }
-
-  cancelResizeChecker() {
-    if (typeof requestAnimationFrame === 'undefined') return;
-    if (this.resizeCheckerRAF) cancelAnimationFrame(this.resizeCheckerRAF);
-  }
-
-  startAnimationReset() {
-    this.animationResetTO = setTimeout(() => {
-      this.setState({
-        animation: false,
-      });
-    }, this.state.duration);
-  }
-
-  cancelAnimationReset() {
-    if (this.animationResetTO) clearTimeout(this.animationResetTO);
-  }
-
-  checkResize() {
-    this.cancelResizeChecker();
-
-    this.repaint(this.props);
-
-    this.startResizeChecker();
-  }
-
   calcDuration(size) {
     if (!this.props.durationPerPx) return this.props.duration;
 
@@ -209,7 +114,7 @@ export default class AnimakitExpander extends React.Component {
     if (this.state.expanded === expanded && this.state.size === size) return;
 
     const duration = this.calcDuration(expanded ? size : 0);
-    const animation = this.winLoaded && this.contentMounted;
+    const animation = this.contentMounted;
     const state = { expanded, size, duration, animation };
 
     if (this.state.size === -1) {
@@ -218,15 +123,7 @@ export default class AnimakitExpander extends React.Component {
       }, 1);
     }
 
-    if (animation) {
-      this.cancelAnimationReset();
-    }
-
-    this.setState(state);
-
-    if (animation) {
-      this.startAnimationReset();
-    }
+    this.applyState(state);
   }
 
   render() {
