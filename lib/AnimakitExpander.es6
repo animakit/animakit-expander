@@ -108,7 +108,10 @@ export default class AnimakitExpander extends AnimakitBase {
     if (!this.state.expanded) return 0;
 
     const node = this.contentNode;
-    return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
+    // return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
+
+    const rect = node.getBoundingClientRect();
+    return Math.ceil(rect[this.props.horizontal ? 'width' : 'height']);
   }
 
   repaint(nextProps) {
