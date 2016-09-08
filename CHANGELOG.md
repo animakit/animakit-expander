@@ -17,3 +17,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ##2.0.0-beta.1
 * Upgrade animakit-core
+
+##2.0.0-beta.2
+* Add getDuration
