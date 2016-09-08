@@ -33,6 +33,10 @@ export default class AnimakitExpander extends AnimakitBase {
     this.contentMounted   = false;
   }
 
+  getDuration() {
+    return this.state.duration;
+  }
+
   getRootStyles() {
     if (!this.state.animation && !this.props.children) return {};
 
