@@ -20,19 +20,19 @@ export default class AnimakitExpander extends AnimakitBase {
     duration:      500,
     durationPerPx: 0,
     easing:        'ease-out',
-    smoothResize:  false,
   };
 
   state = {
-    size:      -1,
+    size:      0,
     duration:  0,
     animation: false,
+    prepare:   false,
     expanded:  false,
   };
 
   init() {
-    this.contentNode      = null;
-    this.contentMounted   = false;
+    this.contentNode = null;
+    this.canAnimate  = !this.props.expanded;
   }
 
   getDuration() {
@@ -46,10 +46,11 @@ export default class AnimakitExpander extends AnimakitBase {
     const overflow = 'hidden';
     const horizontal = this.props.horizontal;
 
-    const size = this.state.expanded ? `${this.state.size}px` : 0;
+    const size = this.state.expanded || this.state.prepare ? `${this.state.size}px` : 0;
     const styles =  horizontal ? { width: size } : { height: size };
 
     if (!this.state.animation) {
+      if (this.state.expanded && !this.state.prepare) return {};
       return { ...styles };
     }
 
@@ -100,6 +101,11 @@ export default class AnimakitExpander extends AnimakitBase {
   }
 
   calcDuration(size) {
+    if (!this.canAnimate) {
+      this.canAnimate = true;
+      return 0;
+    }
+
     if (!this.props.durationPerPx) return this.props.duration;
 
     const sizeDiff = Math.abs(this.state.size - size);
@@ -107,8 +113,6 @@ export default class AnimakitExpander extends AnimakitBase {
   }
 
   calcSize() {
-    if (!this.state.expanded) return 0;
-
     const node = this.contentNode;
     // return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
 
@@ -118,29 +122,28 @@ export default class AnimakitExpander extends AnimakitBase {
 
   repaint(nextProps) {
     const expanded = nextProps.expanded;
-    const size = this.calcSize();
 
-    if (this.state.expanded === expanded && this.state.size === size) return;
+    const { expanded: curExpanded, prepare: curPrepare } = this.state;
 
-    const expansionChanged = this.props.smoothResize ||
-                            (this.state.expanded !== expanded) ||
-                            (this.state.size === 0 || size === 0);
+    if (curExpanded === expanded && !curPrepare) return;
 
-    const duration = this.calcDuration(expanded ? size : 0);
-    const animation = this.contentMounted && expansionChanged;
-    const state = { expanded, size, duration, animation };
+    let size = 0;
 
-    if (this.state.size === -1) {
-      setTimeout(() => {
-        this.contentMounted = true;
-      }, 1);
+    if (curExpanded && (!expanded || (curPrepare && expanded))) {
+      size = this.calcSize();
     }
+
+    const prepare = !curPrepare && (curExpanded !== expanded);
+    const animation = !prepare;
+    const duration = animation ? this.calcDuration(expanded ? size : 0) : 0;
+
+    const state = { expanded, size, prepare, animation, duration };
 
     this.applyState(state);
   }
 
   render() {
-    const showChildren = this.state.expanded || this.state.animation;
+    const showChildren = this.state.expanded || this.state.prepare || this.state.animation;
     const hasChildren = !!this.props.children;
 
     return (
