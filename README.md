@@ -33,7 +33,6 @@ npm install animakit-expander
 | duration | false | number | `500` | Any integer number | Duration of animation |
 | durationPerPx | false | number | `0` | Any integer number | Duration of animation per pixel. Use it if you want the duration depended on the size and calculated dynamically. |
 | easing | false | string | `ease-out` | Any [easing function](http://easings.net/) | Easing function of animation |
-| smoothResize | false | bool | `false` | `true`, `false` | Smooth height resizing in expanded state |
 
 
 ## Origin
