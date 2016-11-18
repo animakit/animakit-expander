@@ -24,6 +24,7 @@ export default class AnimakitExpander extends AnimakitBase {
 
   state = {
     size:      0,
+    lastSize:  0,
     duration:  0,
     animation: false,
     prepare:   false,
@@ -40,7 +41,7 @@ export default class AnimakitExpander extends AnimakitBase {
   }
 
   getRootStyles() {
-    if (!this.state.animation && !this.props.children) return {};
+    if (!this.state.animation && !this.state.prepare && !this.props.children) return {};
 
     const position = 'relative';
     const overflow = 'hidden';
@@ -49,7 +50,7 @@ export default class AnimakitExpander extends AnimakitBase {
     const size = this.state.expanded || this.state.prepare ? `${this.state.size}px` : 0;
     const styles =  horizontal ? { width: size } : { height: size };
 
-    if (!this.state.animation) {
+    if (!this.state.animation && !this.state.prepare) {
       if (this.state.expanded && !this.state.prepare) return {};
       return { ...styles };
     }
@@ -64,7 +65,7 @@ export default class AnimakitExpander extends AnimakitBase {
   }
 
   getContentStyles() {
-    if (!this.state.animation && !this.props.children) return {};
+    if (!this.state.animation && !this.state.prepare && !this.props.children) return {};
 
     const { horizontal, align } = this.props;
 
@@ -90,14 +91,6 @@ export default class AnimakitExpander extends AnimakitBase {
     return (
       <span style = {{ display: 'table', height: 0 }} />
     );
-  }
-
-  getChildrenCount(children) {
-    const length = Array.isArray(children) ? children.length : 1;
-
-    if (length > 1) return length;
-
-    return children ? 1 : 0;
   }
 
   calcDuration(size) {
@@ -128,18 +121,26 @@ export default class AnimakitExpander extends AnimakitBase {
     if (curExpanded === expanded && !curPrepare) return;
 
     let size = 0;
+    let lastSize = this.state.lastSize;
 
     if (curExpanded && (!expanded || (curPrepare && expanded))) {
       size = this.calcSize();
+      if (!size) {
+        if (!expanded) size = lastSize;
+      } else {
+        lastSize = size;
+      }
     }
 
     const prepare = !curPrepare && (curExpanded !== expanded);
     const animation = !prepare;
     const duration = animation ? this.calcDuration(expanded ? size : 0) : 0;
 
-    const state = { expanded, size, prepare, animation, duration };
+    const state = { expanded, size, lastSize, prepare, animation, duration };
 
-    this.applyState(state);
+    setTimeout(() => {
+      this.applyState(state);
+    }, +curPrepare);
   }
 
   render() {
