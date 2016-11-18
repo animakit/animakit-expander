@@ -10,6 +10,7 @@ export default class AnimakitExpander extends AnimakitBase {
     duration:      React.PropTypes.number,
     durationPerPx: React.PropTypes.number,
     easing:        React.PropTypes.string,
+    smoothResize:  React.PropTypes.bool,
   };
 
   static defaultProps = {
@@ -19,6 +20,7 @@ export default class AnimakitExpander extends AnimakitBase {
     duration:      500,
     durationPerPx: 0,
     easing:        'ease-out',
+    smoothResize:  false,
   };
 
   state = {
@@ -120,8 +122,12 @@ export default class AnimakitExpander extends AnimakitBase {
 
     if (this.state.expanded === expanded && this.state.size === size) return;
 
+    const expansionChanged = this.props.smoothResize ||
+                            (this.state.expanded !== expanded) ||
+                            (this.state.size === 0 || size === 0);
+
     const duration = this.calcDuration(expanded ? size : 0);
-    const animation = this.contentMounted;
+    const animation = this.contentMounted && expansionChanged;
     const state = { expanded, size, duration, animation };
 
     if (this.state.size === -1) {
