@@ -2,34 +2,18 @@ import React        from 'react';
 import AnimakitBase from 'animakit-core';
 
 export default class AnimakitExpander extends AnimakitBase {
-  static propTypes = {
-    children:      React.PropTypes.any,
-    expanded:      React.PropTypes.bool,
-    horizontal:    React.PropTypes.bool,
-    align:         React.PropTypes.string,
-    duration:      React.PropTypes.number,
-    durationPerPx: React.PropTypes.number,
-    easing:        React.PropTypes.string,
-    smoothResize:  React.PropTypes.bool,
-  };
+  constructor(props) {
+    super(props);
 
-  static defaultProps = {
-    expanded:      true,
-    horizontal:    false,
-    align:         'left',
-    duration:      500,
-    durationPerPx: 0,
-    easing:        'ease-out',
-  };
-
-  state = {
-    size:      0,
-    lastSize:  0,
-    duration:  0,
-    animation: false,
-    prepare:   false,
-    expanded:  false,
-  };
+    this.state = {
+      size:      0,
+      lastSize:  0,
+      duration:  0,
+      animation: false,
+      prepare:   false,
+      expanded:  false,
+    };
+  }
 
   init() {
     this.contentNode = null;
@@ -161,3 +145,23 @@ export default class AnimakitExpander extends AnimakitBase {
     );
   }
 }
+
+AnimakitExpander.propTypes = {
+  children:      React.PropTypes.any,
+  expanded:      React.PropTypes.bool,
+  horizontal:    React.PropTypes.bool,
+  align:         React.PropTypes.string,
+  duration:      React.PropTypes.number,
+  durationPerPx: React.PropTypes.number,
+  easing:        React.PropTypes.string,
+  smoothResize:  React.PropTypes.bool,
+};
+
+AnimakitExpander.defaultProps = {
+  expanded:      true,
+  horizontal:    false,
+  align:         'left',
+  duration:      500,
+  durationPerPx: 0,
+  easing:        'ease-out',
+};
