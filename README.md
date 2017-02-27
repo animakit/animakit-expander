@@ -5,13 +5,9 @@ Supports both vertical and horizontal mode.
 ## Usage
 
 ```javascript
-<div className="title" onClick={ toggle }>
-  { this.props.title }
-</div>
-<AnimakitExpander expanded={ this.state.expanded }>
-  <div className="text">
-    { this.props.text }
-  </div>
+<Title onClick={toggle} />
+<AnimakitExpander expanded={this.state.expanded}>
+  <Text />
 </AnimakitExpander>
 ```
 
