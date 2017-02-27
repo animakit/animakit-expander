@@ -1,41 +1,132 @@
-import React        from 'react';
-import AnimakitBase from 'animakit-core';
+import React, { Component, PropTypes } from 'react';
 
-export default class AnimakitExpander extends AnimakitBase {
+import { isEqual, transitionEventName } from './utils';
+
+export default class AnimakitExpander extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      size:      0,
-      lastSize:  0,
-      duration:  0,
       animation: false,
-      prepare:   false,
-      expanded:  false,
+      prepare: false,
+      expanded: false,
+
+      size: 0,
+
+      duration: 0,
     };
   }
 
-  init() {
+  componentWillMount() {
     this.contentNode = null;
-    this.canAnimate  = !this.props.expanded;
+    this.canAnimate = !this.props.expanded;
+
+    this.transitionEventName = transitionEventName();
+
+    this.listeners = this.getListeners();
+
+    this.animationReset = false;
+    this.animationResetTO = null;
+    this.resizeCheckerRAF = null;
   }
 
-  getDuration() {
-    return this.state.duration;
+  componentDidMount() {
+    this.repaint(this.props);
+
+    this.toggleAnimationListener(true);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.repaint(nextProps);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    const stateChanged = !isEqual(nextState, this.state);
+
+    const childrenChanged = !isEqual(nextProps.children, this.props.children);
+
+    return stateChanged || childrenChanged;
+  }
+
+  componentWillUpdate() {
+    this.toggleResizeChecker(false);
+  }
+
+  componentDidUpdate() {
+    this.toggleResizeChecker(true);
+  }
+
+  componentWillUnmount() {
+    this.toggleResizeChecker(false);
+    this.toggleAnimationReset(false);
+    this.toggleAnimationListener(false);
+  }
+
+  getListeners() {
+    return {
+      onCheckResize: this.onCheckResize.bind(this),
+      onTransitionEnd: this.onTransitionEnd.bind(this),
+    };
+  }
+
+  toggleResizeChecker(start) {
+    if (typeof requestAnimationFrame === 'undefined') return;
+
+    if (start) {
+      this.resizeCheckerRAF = requestAnimationFrame(this.listeners.onCheckResize);
+    } else if (this.resizeCheckerRAF) {
+      cancelAnimationFrame(this.resizeCheckerRAF);
+    }
+  }
+
+  toggleAnimationReset(add) {
+    if (this.animationResetTO) clearTimeout(this.animationResetTO);
+
+    if (add) {
+      this.animationResetTO = setTimeout(() => {
+        this.animationReset = true;
+      }, this.state.duration);
+    } else {
+      this.animationReset = false;
+    }
+  }
+
+  toggleAnimationListener(add) {
+    const method = add ? 'addEventListener' : 'removeEventListener';
+    this.rootNode[method](this.transitionEventName, this.listeners.onTransitionEnd, false);
+  }
+
+  onTransitionEnd() {
+    if (!this.animationReset) return;
+
+    this.setState({
+      animation: false,
+    });
+  }
+
+  onCheckResize() {
+    this.toggleResizeChecker(false);
+
+    this.repaint(this.props);
+
+    this.toggleResizeChecker(true);
   }
 
   getRootStyles() {
-    if (!this.state.animation && !this.state.prepare && !this.props.children) return {};
+    const { animation, expanded, prepare } = this.state;
+
+    if (!animation && !prepare && !this.props.children) return {};
 
     const position = 'relative';
     const overflow = 'hidden';
     const horizontal = this.props.horizontal;
 
-    const size = this.state.expanded || this.state.prepare ? `${this.state.size}px` : 0;
-    const styles =  horizontal ? { width: size } : { height: size };
+    const size = expanded || prepare ? `${this.state.size}px` : 0;
+    const styles = horizontal ? { width: size } : { height: size };
 
-    if (!this.state.animation && !this.state.prepare) {
-      if (this.state.expanded && !this.state.prepare) return {};
+    if (!animation && !prepare) {
+      if (expanded && !prepare) return {};
+
       return { ...styles };
     }
 
@@ -49,7 +140,9 @@ export default class AnimakitExpander extends AnimakitBase {
   }
 
   getContentStyles() {
-    if (!this.state.animation && !this.state.prepare && !this.props.children) return {};
+    const { animation, prepare } = this.state;
+
+    if (!animation && !prepare && !this.props.children) return {};
 
     const { horizontal, align } = this.props;
 
@@ -59,12 +152,12 @@ export default class AnimakitExpander extends AnimakitBase {
       return { float };
     }
 
-    if (align === 'bottom' && this.state.animation) {
+    if (align === 'bottom' && animation) {
       return {
         position: 'absolute',
-        bottom:   0,
-        left:     0,
-        width:    '100%',
+        bottom: 0,
+        left: 0,
+        width: '100%',
       };
     }
 
@@ -73,7 +166,7 @@ export default class AnimakitExpander extends AnimakitBase {
 
   getClearance() {
     return (
-      <span style = {{ display: 'table', height: 0 }} />
+      <span style={{ display: 'table', height: 0 }} />
     );
   }
 
@@ -83,18 +176,20 @@ export default class AnimakitExpander extends AnimakitBase {
       return 0;
     }
 
-    if (!this.props.durationPerPx) return this.props.duration;
+    const { durationPerPx, duration } = this.props;
+
+    if (!durationPerPx) return duration;
 
     const sizeDiff = Math.abs(this.state.size - size);
-    return this.props.durationPerPx * sizeDiff;
+    return durationPerPx * sizeDiff;
   }
 
   calcSize() {
     const node = this.contentNode;
-    // return this.props.horizontal ? node.offsetWidth : node.offsetHeight;
+    const newSize = this.props.horizontal ? node.offsetWidth : node.offsetHeight;
+    const size = this.state.size;
 
-    const rect = node.getBoundingClientRect();
-    return Math.ceil(rect[this.props.horizontal ? 'width' : 'height']);
+    return (Math.abs(newSize - size) <= 1) ? size : newSize;
   }
 
   repaint(nextProps) {
@@ -105,14 +200,12 @@ export default class AnimakitExpander extends AnimakitBase {
     if (curExpanded === expanded && !curPrepare) return;
 
     let size = 0;
-    let lastSize = this.state.lastSize;
+    const lastSize = this.state.size;
 
     if (curExpanded && (!expanded || (curPrepare && expanded))) {
       size = this.calcSize();
       if (!size) {
         if (!expanded) size = lastSize;
-      } else {
-        lastSize = size;
       }
     }
 
@@ -120,22 +213,40 @@ export default class AnimakitExpander extends AnimakitBase {
     const animation = !prepare;
     const duration = animation ? this.calcDuration(expanded ? size : 0) : 0;
 
-    const state = { expanded, size, lastSize, prepare, animation, duration };
+    const state = { expanded, size, prepare, animation, duration };
 
     setTimeout(() => {
       this.applyState(state);
     }, +curPrepare);
   }
 
+  applyState(state) {
+    if (!Object.keys(state).length) return;
+
+    if (state.animation) {
+      this.toggleAnimationReset(false);
+    }
+
+    this.setState(state);
+
+    if (state.animation) {
+      this.toggleAnimationReset(true);
+    }
+  }
+
   render() {
-    const showChildren = this.state.expanded || this.state.prepare || this.state.animation;
+    const { animation, expanded, prepare } = this.state;
+    const showChildren = expanded || prepare || animation;
     const hasChildren = !!this.props.children;
 
     return (
-      <div style = { showChildren ? this.getRootStyles() : {} }>
+      <div
+        ref={(c) => { this.rootNode = c; }}
+        style={ showChildren ? this.getRootStyles() : {} }
+      >
         <div
-          ref = {(c) => { this.contentNode = c; }}
-          style = { showChildren ? this.getContentStyles() : {} }
+          ref={(c) => { this.contentNode = c; }}
+          style={ showChildren ? this.getContentStyles() : {} }
         >
           { showChildren && hasChildren && this.getClearance() }
           { showChildren && this.props.children }
@@ -147,21 +258,21 @@ export default class AnimakitExpander extends AnimakitBase {
 }
 
 AnimakitExpander.propTypes = {
-  children:      React.PropTypes.any,
-  expanded:      React.PropTypes.bool,
-  horizontal:    React.PropTypes.bool,
-  align:         React.PropTypes.string,
-  duration:      React.PropTypes.number,
-  durationPerPx: React.PropTypes.number,
-  easing:        React.PropTypes.string,
-  smoothResize:  React.PropTypes.bool,
+  children: PropTypes.any,
+  expanded: PropTypes.bool,
+  horizontal: PropTypes.bool,
+  align: PropTypes.string,
+  duration: PropTypes.number,
+  durationPerPx: PropTypes.number,
+  easing: PropTypes.string,
+  smoothResize: PropTypes.bool,
 };
 
 AnimakitExpander.defaultProps = {
-  expanded:      true,
-  horizontal:    false,
-  align:         'left',
-  duration:      500,
+  expanded: true,
+  horizontal: false,
+  align: 'left',
+  duration: 500,
   durationPerPx: 0,
-  easing:        'ease-out',
+  easing: 'ease-out',
 };
