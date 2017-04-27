@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-import { isEqual, transitionEventName, animationFramePolyfill } from './utils';
+import { isEqual, transitionEventName } from './utils';
 
 export default class AnimakitExpander extends Component {
   constructor(props) {
@@ -71,9 +71,7 @@ export default class AnimakitExpander extends Component {
   }
 
   toggleResizeChecker(start) {
-    if (typeof requestAnimationFrame === 'undefined') {
-      animationFramePolyfill();
-    };
+    if (typeof requestAnimationFrame === 'undefined') return;
 
     if (start) {
       this.resizeCheckerRAF = requestAnimationFrame(this.listeners.onCheckResize);
