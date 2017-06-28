@@ -211,7 +211,7 @@ export default class AnimakitExpander extends Component {
     }
 
     const prepare = !curPrepare && (curExpanded !== expanded);
-    const animation = !prepare;
+    const animation = !prepare && !expanded;
     const duration = animation ? this.calcDuration(expanded ? size : 0) : 0;
 
     const state = { expanded, size, prepare, animation, duration };
