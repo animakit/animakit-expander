@@ -10,7 +10,7 @@
   "scripts": {
     "clean": "rimraf lib/*.js",
     "build": "npm run clean && babel -s inline -d ./ **/*.es6",
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "test": "$(npm bin)/jest"
   },
   "author": "Anna Selezniova",
