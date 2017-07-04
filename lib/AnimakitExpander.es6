@@ -198,20 +198,18 @@ export default class AnimakitExpander extends Component {
 
     const { expanded: curExpanded, prepare: curPrepare } = this.state;
 
-    if (curExpanded === expanded && !curPrepare) return;
-
     let size = 0;
     const lastSize = this.state.size;
 
-    if (curExpanded && (!expanded || (curPrepare && expanded))) {
+    if (curExpanded) {
       size = this.calcSize();
-      if (!size) {
-        if (!expanded) size = lastSize;
-      }
+      if (!size && !expanded) size = lastSize;
     }
 
+    if (curExpanded === expanded && size === lastSize && !curPrepare) return;
+
     const prepare = !curPrepare && (curExpanded !== expanded);
-    const animation = !prepare && !expanded;
+    const animation = !prepare;
     const duration = animation ? this.calcDuration(expanded ? size : 0) : 0;
 
     const state = { expanded, size, prepare, animation, duration };
