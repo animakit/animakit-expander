@@ -11,7 +11,7 @@
     "clean": "rimraf lib/*.js",
     "build": "npm run clean && babel -s inline -d ./ **/*.es6",
     "prepublishOnly": "npm run build",
-    "test": "$(npm bin)/jest"
+    "test": "npm run build && jest"
   },
   "author": "Anna Selezniova",
   "license": "MIT",
