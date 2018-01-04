@@ -30,8 +30,8 @@
   },
   "homepage": "https://animakit.github.io",
   "peerDependencies": {
-    "react": ">= 16.0.0",
-    "react-dom": ">= 16.0.0"
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
