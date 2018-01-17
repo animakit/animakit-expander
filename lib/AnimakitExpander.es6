@@ -16,6 +16,9 @@ export default class AnimakitExpander extends Component {
 
       duration: 0,
     };
+
+    this.setRootNode = this.setRootNode.bind(this);
+    this.setContentNode = this.setContentNode.bind(this);
   }
 
   componentWillMount() {
@@ -233,6 +236,14 @@ export default class AnimakitExpander extends Component {
     }
   }
 
+  setRootNode(c) {
+    this.rootNode = c;
+  }
+
+  setContentNode(c) {
+    this.contentNode = c;
+  }
+
   render() {
     const { animation, expanded, prepare } = this.state;
     const showChildren = expanded || prepare || animation;
@@ -240,11 +251,11 @@ export default class AnimakitExpander extends Component {
 
     return (
       <div
-        ref={(c) => { this.rootNode = c; }}
+        ref={this.setRootNode}
         style={ showChildren ? this.getRootStyles() : {} }
       >
         <div
-          ref={(c) => { this.contentNode = c; }}
+          ref={this.setContentNode}
           style={ showChildren ? this.getContentStyles() : {} }
         >
           { showChildren && hasChildren && this.getClearance() }
