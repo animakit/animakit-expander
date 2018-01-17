@@ -10,7 +10,7 @@ export default class AnimakitExpander extends Component {
     this.state = {
       animation: false,
       prepare: false,
-      expanded: false,
+      expanded: !!props.expanded,
 
       size: 0,
 
