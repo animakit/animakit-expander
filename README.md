@@ -1,4 +1,8 @@
 # AnimakitExpander
+
+**WARNING:** Currently unmaintained because of lack of interest, activity and resources
+
+
 React component for the expanding and collapsing of the blocks.
 Supports both vertical and horizontal mode.
 
